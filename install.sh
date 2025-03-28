@@ -40,8 +40,8 @@ if [ ! -f "$SERVICE_SOURCE_DIR/package.json" ]; then
   exit 1
 fi
 
-if [ ! -f "$SCRIPT_DIR/.env.example" ]; then
-  echo "ERROR: Required file .env.example not found in $SCRIPT_DIR"
+if [ ! -f "$SERVICE_SOURCE_DIR/.env.example" ]; then
+  echo "ERROR: Required file .env.example not found in $SERVICE_SOURCE_DIR"
   exit 1
 fi
 

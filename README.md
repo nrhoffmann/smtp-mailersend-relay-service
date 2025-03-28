@@ -38,7 +38,7 @@ DigitalOcean doesn't allow outbound SMTP request. This service uses http to forw
 
 2. Run the installation script:
    ```bash
-   sudo ./install-service.sh
+   sudo bash ./install.sh
    ```
 
 3. Configure your MailerSend API key:
@@ -58,7 +58,7 @@ When you update the code in the Git repository, you can update the running servi
 
 1. On your server, run:
    ```bash
-   sudo /opt/smtp-mailersend-relay/update-service.sh
+   sudo ./update.sh
    ```
 
 ## Usage
