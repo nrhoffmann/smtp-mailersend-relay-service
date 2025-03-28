@@ -36,6 +36,13 @@ if [ ! -d "$INSTALL_DIR" ]; then
   exit 1
 fi
 
+# Check if NVM is installed for the service user
+if [ ! -d "/home/$SERVICE_USER/.nvm" ]; then
+  echo "Error: NVM is not installed for $SERVICE_USER."
+  echo "Please run the install script first or install NVM manually."
+  exit 1
+fi
+
 # Stop the service before updating
 echo "Stopping service..."
 systemctl stop $SERVICE_NAME
@@ -73,29 +80,29 @@ if [ ! -z "$ENV_BACKUP" ] && [ -f "$ENV_BACKUP" ]; then
   echo "Env file restored successfully."
 fi
 
-# Update dependencies
+# Update dependencies using NVM-installed Node.js
 echo "Updating dependencies..."
 cd "$INSTALL_DIR"
-sudo -u "$SERVICE_USER" npm install --production
+sudo -u "$SERVICE_USER" bash -c "source /home/$SERVICE_USER/.nvm/nvm.sh && cd $INSTALL_DIR && npm install --production"
 
 # Ensure correct permissions
 echo "Setting permissions..."
 chown -R "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR"
-if [ -f "$INSTALL_DIR/update.sh" ]; then
-  chmod +x "$INSTALL_DIR/update.sh"
+if [ -f "$INSTALL_DIR/update-service.sh" ]; then
+  chmod +x "$INSTALL_DIR/update-service.sh"
 fi
-if [ -f "$INSTALL_DIR/install.sh" ]; then
-  chmod +x "$INSTALL_DIR/install.sh"
+if [ -f "$INSTALL_DIR/install-service.sh" ]; then
+  chmod +x "$INSTALL_DIR/install-service.sh"
 fi
 
-# Copy the service file to systemd directory
-if [ -f "$INSTALL_DIR/$SERVICE_NAME" ]; then
-  echo "Updating systemd service file..."
-  cp "$INSTALL_DIR/$SERVICE_NAME" /etc/systemd/system/
-  # Ensure service file uses the correct service user
-  sed -i "s/User=.*/User=$SERVICE_USER/" /etc/systemd/system/$SERVICE_NAME
-  sed -i "s/Group=.*/Group=$SERVICE_USER/" /etc/systemd/system/$SERVICE_NAME
-  # Reload systemd in case service file changed
+# Update the Node.js path in the systemd service if needed
+NODE_EXEC_PATH=$(sudo -u "$SERVICE_USER" bash -c "source /home/$SERVICE_USER/.nvm/nvm.sh && which node")
+echo "Node.js path: $NODE_EXEC_PATH"
+
+# Update the systemd service file with the current Node.js path
+if grep -q "ExecStart=" /etc/systemd/system/$SERVICE_NAME; then
+  sed -i "s|ExecStart=.*|ExecStart=$NODE_EXEC_PATH $INSTALL_DIR/index.js|" /etc/systemd/system/$SERVICE_NAME
+  echo "Updated Node.js path in systemd service file"
   systemctl daemon-reload
 fi
 
