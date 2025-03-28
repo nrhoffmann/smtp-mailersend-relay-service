@@ -1,0 +1,28 @@
+[Unit]
+Description=SMTP to MailerSend Relay Service
+After=network.target
+
+[Service]
+Type=simple
+User=mailrelay
+Group=mailrelay
+WorkingDirectory=/opt/smtp-mailersend-relay
+ExecStart=/usr/bin/node /opt/smtp-mailersend-relay/index.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smtp-mailersend
+Environment=NODE_ENV=production
+
+# Ensure the service has enough file descriptors
+LimitNOFILE=65536
+
+# Security measures
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
