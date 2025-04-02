@@ -3,7 +3,7 @@ const simpleParser = require('mailparser').simpleParser;
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const { MailerSend, EmailParams, Recipient, Attachment } = require('mailersend');
+const { MailerSend, EmailParams, Recipient, Attachment, Sender } = require('mailersend');
 
 // Load environment variables
 dotenv.config();
@@ -26,7 +26,6 @@ if (!fs.existsSync(config.attachmentDir)) {
   fs.mkdirSync(config.attachmentDir, { recursive: true });
 }
 
-// Initialize MailerSend client
 const mailersend = new MailerSend({
   apiKey: config.mailersend.apiKey,
 });
@@ -84,7 +83,11 @@ async function saveAttachment(attachment) {
   };
 }
 
-// Process email and send via MailerSend
+/**
+ * 
+ * @param {import('mailparser').ParsedMail} parsedMail 
+ * @returns 
+ */  
 async function sendViaMailerSend(parsedMail) {
   try {
     // Extract email addresses
@@ -97,9 +100,8 @@ async function sendViaMailerSend(parsedMail) {
     
     // Create a new EmailParams instance
     const emailParams = new EmailParams()
-      .setFrom(from.address)
-      .setFromName(from.name || '')
-      .setRecipients(recipients)
+      .setFrom(new Sender(from.address, from.name || ''))
+      .setTo(recipients)
       .setSubject(parsedMail.subject || '(No Subject)');
     
     // Set email content
@@ -129,10 +131,7 @@ async function sendViaMailerSend(parsedMail) {
     // Add Reply-To if present
     if (parsedMail.replyTo && parsedMail.replyTo.value.length > 0) {
       const replyTo = parsedMail.replyTo.value[0];
-      emailParams.setReplyTo(replyTo.address);
-      if (replyTo.name) {
-        emailParams.setReplyToName(replyTo.name);
-      }
+      emailParams.setReplyTo(new Recipient(replyTo.address, replyTo.name));
     }
     
     // Process attachments if any
@@ -146,7 +145,7 @@ async function sendViaMailerSend(parsedMail) {
           new Attachment(
             savedAttachment.content.toString('base64'),
             savedAttachment.filename,
-            savedAttachment.contentType
+            'attachment'
           )
         );
       }
@@ -156,7 +155,7 @@ async function sendViaMailerSend(parsedMail) {
     
     // Send the email
     try {
-      const response = await mailersend.send(emailParams);
+      const response = await mailersend.email.send(emailParams);
       console.log('Email sent successfully via MailerSend:', response);
       return response;
     } catch (error) {

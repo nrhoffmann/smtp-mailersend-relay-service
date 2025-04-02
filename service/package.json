@@ -4,19 +4,19 @@
     "description": "SMTP server that forwards emails via MailerSend API",
     "main": "index.js",
     "scripts": {
-      "start": "node index.js",
-      "dev": "nodemon index.js"
+        "start": "node index.js",
+        "dev": "nodemon index.js"
     },
     "dependencies": {
-      "dotenv": "^16.4.1",
-      "mailersend": "^2.2.0",
-      "mailparser": "^3.6.5",
-      "smtp-server": "^3.13.0"
+        "dotenv": "^16.4.7",
+        "mailersend": "^2.2.0",
+        "mailparser": "^3.6.5",
+        "smtp-server": "^3.13.6"
     },
     "devDependencies": {
-      "nodemon": "^3.0.3"
+        "nodemon": "^3.0.3"
     },
     "engines": {
-      "node": ">=14.0.0"
+        "node": ">=14.0.0"
     }
-  }
+}
